@@ -29,7 +29,8 @@ Este projeto serve como um acelerador para equipes que lidam com um grande volum
 
 * [Mateus Xavier](https://github.com/mxs2/)
 * [Alvaro Silva](https://github.com/alvaro5801/)
-
+* [Thays Barbosa](https://github.com/idthy/)
+  
 ## Licença
 
 Distribuído sob a Licença MIT. Veja `LICENSE` para mais informações.
