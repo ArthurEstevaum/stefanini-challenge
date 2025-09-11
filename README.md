@@ -28,6 +28,7 @@ Este projeto serve como um acelerador para equipes que lidam com um grande volum
 ## Contribuidores 
 
 * [Mateus Xavier](https://github.com/mxs2/)
+* [Alvaro Silva](https://github.com/alvaro5801/)
 
 ## Licença
 
