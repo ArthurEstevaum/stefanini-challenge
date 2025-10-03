@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.stefanini'
 version = '0.0.1-SNAPSHOT'
-description = 'Application for turning requirements document into actions in trello using AI agents'
+description = 'Application for turning requirements document into actions in jira using AI agents'
 
 java {
 	toolchain {
