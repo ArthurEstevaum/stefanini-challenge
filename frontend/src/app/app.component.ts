@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -12,12 +12,117 @@ export interface UserStory {
   estimativaPontos: number;
 }
 
+export interface ConfigSettings {
+  openaiApiKey: string;
+  jiraUrl: string;
+  jiraUsername: string;
+  jiraToken: string;
+  jiraProjectKey: string;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
     <div class="min-h-screen bg-[#F4F6F8] font-poppins text-slate-800 p-6 md:p-12">
+
+      <!-- Configuration Button -->
+      <div class="fixed top-6 right-6 z-40">
+        <button (click)="toggleConfigPanel()" 
+                class="p-3 bg-white hover:bg-slate-50 text-[#004389] rounded-full shadow-lg border border-slate-200 transition-all hover:shadow-xl"
+                title="Configuracoes">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Configuration Panel -->
+      <div *ngIf="showConfigPanel()" 
+           class="fixed inset-0 flex items-center justify-center z-50 bg-[#002D5C]/40 backdrop-blur-sm animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-[#004389]">Configuracoes do Sistema</h2>
+            <button (click)="toggleConfigPanel()" class="text-slate-400 hover:text-slate-600">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="space-y-6">
+            <!-- OpenAI API Key -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">OpenAI API Key</label>
+              <input type="password" 
+                     [(ngModel)]="config().openaiApiKey"
+                     placeholder="sk-..."
+                     class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#00C0F3] focus:border-transparent">
+              <p class="text-xs text-slate-500 mt-1">Chave de API para o modelo de linguagem (chatgpt-4o-mini)</p>
+            </div>
+
+            <!-- Jira URL -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Jira URL *</label>
+              <input type="text" 
+                     [(ngModel)]="config().jiraUrl"
+                     placeholder="https://seu-dominio.atlassian.net"
+                     class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#00C0F3] focus:border-transparent">
+              <p class="text-xs text-slate-500 mt-1">URL base da sua instancia Jira</p>
+            </div>
+
+            <!-- Jira Username -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Jira Username *</label>
+              <input type="text" 
+                     [(ngModel)]="config().jiraUsername"
+                     placeholder="seu-email@example.com"
+                     class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#00C0F3] focus:border-transparent">
+              <p class="text-xs text-slate-500 mt-1">Email de usuario do Jira</p>
+            </div>
+
+            <!-- Jira API Token -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Jira API Token *</label>
+              <input type="password" 
+                     [(ngModel)]="config().jiraToken"
+                     placeholder="ATATT3xFfGF0..."
+                     class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#00C0F3] focus:border-transparent">
+              <p class="text-xs text-slate-500 mt-1">Token de API do Jira</p>
+            </div>
+
+            <!-- Jira Project Key -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Jira Project Key *</label>
+              <input type="text" 
+                     [(ngModel)]="config().jiraProjectKey"
+                     placeholder="PROJ"
+                     class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#00C0F3] focus:border-transparent">
+              <p class="text-xs text-slate-500 mt-1">Chave do projeto no Jira</p>
+            </div>
+          </div>
+
+          <div class="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p class="text-sm text-amber-800">
+              <strong>Importante:</strong> Estas configurações sao armazenadas localmente no navegador. 
+              Certifique-se de adicionar os mesmos valores no arquivo <code class="bg-amber-100 px-1 py-0.5 rounded">.env</code> do backend.
+            </p>
+          </div>
+
+          <div class="mt-6 flex gap-3">
+            <button (click)="toggleConfigPanel()" 
+                    class="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+              Cancelar
+            </button>
+            <button (click)="saveConfig()" 
+                    class="flex-1 px-6 py-3 bg-[#004389] text-white rounded-lg hover:bg-[#003366] transition-colors">
+              Salvar Configuracoes
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Header -->
       <header class="max-w-5xl mx-auto mb-12 animate-fade-in-down">
@@ -207,7 +312,7 @@ export interface UserStory {
     .animate-bounce-in { animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
   `]
 })
-export class AppComponent { // Renomeado para AppComponent para seguir o padrão
+export class AppComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
 
@@ -217,6 +322,16 @@ export class AppComponent { // Renomeado para AppComponent para seguir o padrão
   isSyncing = signal(false);
   errorMessage = signal('');
   showSuccess = false;
+  showConfigPanel = signal(false);
+  
+  // Configuration settings
+  config = signal<ConfigSettings>({
+    openaiApiKey: '',
+    jiraUrl: '',
+    jiraUsername: '',
+    jiraToken: '',
+    jiraProjectKey: ''
+  });
 
   private apiUrl = 'http://localhost:8080/api/stories';
 
@@ -259,8 +374,18 @@ export class AppComponent { // Renomeado para AppComponent para seguir o padrão
 
     this.isSyncing.set(true);
 
-    // Envia a lista atualizada (com edições do utilizador)
-    this.http.post(`${this.apiUrl}/sync`, this.stories()).subscribe({
+    // Envia a lista atualizada (com edições do utilizador) e as credenciais
+    const payload = {
+      stories: this.stories(),
+      credentials: {
+        url: this.config().jiraUrl,
+        username: this.config().jiraUsername,
+        token: this.config().jiraToken,
+        projectKey: this.config().jiraProjectKey
+      }
+    };
+
+    this.http.post(`${this.apiUrl}/sync`, payload).subscribe({
       next: () => {
         this.isSyncing.set(false);
         this.showSuccess = true;
@@ -277,6 +402,27 @@ export class AppComponent { // Renomeado para AppComponent para seguir o padrão
     this.stories.set([]);
     this.errorMessage.set('');
     this.showSuccess = false;
+  }
+
+  toggleConfigPanel() {
+    this.showConfigPanel.update(current => !current);
+  }
+
+  saveConfig() {
+    localStorage.setItem('agentConfig', JSON.stringify(this.config()));
+    this.showConfigPanel.set(false);
+    alert('Configurações salvas localmente. Lembre-se de atualizar o arquivo .env no backend.');
+  }
+
+  loadConfig() {
+    const saved = localStorage.getItem('agentConfig');
+    if (saved) {
+      this.config.set(JSON.parse(saved));
+    }
+  }
+
+  ngOnInit() {
+    this.loadConfig();
   }
 
   trackByIndex(index: number, obj: any): any {

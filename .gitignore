@@ -40,3 +40,5 @@ app.key
 app.pub
 
 mariadb-data
+### Environment Variables ###
+*.env*
