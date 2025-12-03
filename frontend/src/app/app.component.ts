@@ -2,6 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from './services/auth.service';
 
 // --- Interfaces ---
 export interface UserStory {
@@ -19,19 +20,32 @@ export interface UserStory {
     <div class="min-h-screen bg-[#F4F6F8] font-poppins text-slate-800 p-6 md:p-12">
 
       <!-- Header -->
-      <header class="max-w-5xl mx-auto mb-12 text-center animate-fade-in-down">
-        <div class="inline-flex items-center justify-center mb-8">
-          <!-- Logo Stefanini -->
-          <img src="https://stefanini.com/es/wp-content/uploads/sites/4/2022/10/Logo-Stefanini.jpeg"
-               alt="Stefanini Group"
-               class="h-12 md:h-16 object-contain filter drop-shadow-sm rounded-full" />
+      <header class="max-w-5xl mx-auto mb-12 animate-fade-in-down">
+        <div class="flex justify-between items-center mb-8">
+          <div class="flex items-center gap-4">
+            <!-- Logo Stefanini -->
+            <img src="https://stefanini.com/es/wp-content/uploads/sites/4/2022/10/Logo-Stefanini.jpeg"
+                 alt="Stefanini Group"
+                 class="h-12 md:h-14 object-contain filter drop-shadow-sm rounded-full" />
+          </div>
+          <!-- Logout Button -->
+          <button (click)="logout()"
+                  class="px-6 py-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium text-sm border border-slate-200 hover:border-red-200 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+              <path fill-rule="evenodd" d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z" clip-rule="evenodd" />
+              <path fill-rule="evenodd" d="M19 10a.75.75 0 00-.75-.75H8.704l1.048-.943a.75.75 0 10-1.004-1.114l-2.5 2.25a.75.75 0 000 1.114l2.5 2.25a.75.75 0 101.004-1.114l-1.048-.943h9.546A.75.75 0 0019 10z" clip-rule="evenodd" />
+            </svg>
+            Sair
+          </button>
         </div>
-        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-[#004389] mb-4">
-          Agile Agent <span class="text-[#00C0F3] text-sm align-top font-medium px-2 py-0.5 bg-blue-50 rounded-full">AI Powered</span>
-        </h1>
-        <p class="text-slate-500 max-w-2xl mx-auto font-light">
-          Transforme documentos de requisitos em User Stories padronizadas e sincronize com o Jira em segundos.
-        </p>
+        <div class="text-center">
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-[#004389] mb-4">
+            Agile Agent <span class="text-[#00C0F3] text-sm align-top font-medium px-2 py-0.5 bg-blue-50 rounded-full">AI Powered</span>
+          </h1>
+          <p class="text-slate-500 max-w-2xl mx-auto font-light">
+            Transforme documentos de requisitos em User Stories padronizadas e sincronize com o Jira em segundos.
+          </p>
+        </div>
       </header>
 
       <!-- Main Content -->
@@ -195,6 +209,7 @@ export interface UserStory {
 })
 export class AppComponent { // Renomeado para AppComponent para seguir o padrão
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
   // Signals para gestão de estado reativa
   stories = signal<UserStory[]>([]);
@@ -204,6 +219,10 @@ export class AppComponent { // Renomeado para AppComponent para seguir o padrão
   showSuccess = false;
 
   private apiUrl = 'http://localhost:8080/api/stories';
+
+  logout() {
+    this.authService.logout();
+  }
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
