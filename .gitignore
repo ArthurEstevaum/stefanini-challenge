@@ -36,5 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+app.key
+app.pub
+
+mariadb-data
 ### Environment Variables ###
 *.env*

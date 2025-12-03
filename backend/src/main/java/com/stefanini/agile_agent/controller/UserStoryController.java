@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stories")
-@CrossOrigin(origins = "*")
 public class UserStoryController {
     private final UserStoryService userStoryService;
     private final JiraIntegrationService jiraIntegrationService;
