@@ -22,6 +22,10 @@ public class UserStoryController {
         this.jiraIntegrationService = jiraIntegrationService;
     }
 
+    public record SyncRequest(List<UserStoryDto> stories, JiraCredentials credentials) {}
+    
+    public record JiraCredentials(String url, String username, String token, String projectKey) {}
+
     @PostMapping("/generate")
     public ResponseEntity<List<UserStoryDto>> generateStories(@RequestParam("file") MultipartFile file) {
         var stories = userStoryService.processarArquivo(file);
@@ -30,11 +34,15 @@ public class UserStoryController {
     }
 
     @PostMapping("/sync")
-    public ResponseEntity<Map<String, String>> syncStories(@RequestBody List<UserStoryDto> stories) {
-        if(stories == null || stories.isEmpty()) {
+    public ResponseEntity<Map<String, String>> syncStories(@RequestBody SyncRequest request) {
+        if(request.stories() == null || request.stories().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "A lista de stories não pode estar vazia."));
         }
-        jiraIntegrationService.criarCardsNoJira(stories);
+        if(request.credentials() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Credenciais do Jira são obrigatórias."));
+        }
+        
+        jiraIntegrationService.criarCardsNoJira(request.stories(), request.credentials());
 
         return ResponseEntity.ok(Map.of("message", "Sucesso! As stories foram criadas no Jira."));
     }
