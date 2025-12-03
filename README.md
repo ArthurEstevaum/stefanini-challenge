@@ -69,10 +69,31 @@ JIRA_API_KEY=seu-token-api
 JIRA_PROJECT_KEY=CHAVE-DO-PROJETO
 
 # Configurações da LLM
-SPRING_AI_OPENAI_API_KEY=sua-chave-api
+OPENAI_API_KEY=sua-chave-api
 ```
 
+**Como obter o Token de API do Jira:**
+   - Acesse: https://id.atlassian.com/manage-profile/security/api-tokens
+   - Clique em "Create API token"
+   - Dê um nome descritivo (ex: "Agile Agent")
+   - Copie o token gerado e cole em `JIRA_API_KEY`
+   - **IMPORTANTE:** Use seu email Atlassian em `JIRA_USERNAME`
+
 **Nota:** Certifique-se de adicionar o arquivo `.env` ao `.gitignore` para não expor suas credenciais.
+
+3. Copie o arquivo de exemplo e preencha com suas credenciais:
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item backend\.env.example backend\.env
+```
+
+**Linux/Mac:**
+```bash
+cp backend/.env.example backend/.env
+```
+
+Depois edite o arquivo `backend/.env` com suas credenciais reais.
 
 ### Executando o Backend
 
@@ -114,6 +135,35 @@ cd backend
 cd frontend
 ng serve
 ```
+
+## Solução de Problemas
+
+### Erro 401 Unauthorized ao Sincronizar com Jira
+
+Se você receber um erro `feign.FeignException$Unauthorized: [401 Unauthorized]` ao tentar criar issues no Jira:
+
+1. **Verifique suas credenciais:**
+   - Confirme que o `JIRA_USERNAME` é o email correto da sua conta Atlassian
+   - Confirme que o `JIRA_API_KEY` é um token de API válido (não uma senha)
+   - Gere um novo token em: https://id.atlassian.com/manage-profile/security/api-tokens
+
+2. **Verifique a URL do Jira:**
+   - A URL deve ser no formato: `https://seu-dominio.atlassian.net`
+   - Não inclua barras finais ou caminhos adicionais
+
+3. **Verifique a chave do projeto:**
+   - A `JIRA_PROJECT_KEY` deve ser a chave exata do projeto (ex: `PROJ`, `DEV`, `SCRUM`)
+   - Você pode encontrar a chave do projeto na URL ao navegar no projeto
+
+4. **Teste as credenciais:**
+   - Você pode testar suas credenciais usando curl:
+   ```bash
+   curl -u seu-email@example.com:seu-token-api https://seu-dominio.atlassian.net/rest/api/3/myself
+   ```
+
+5. **Reinicie o backend após alterar o .env:**
+   - Pare o servidor (Ctrl+C)
+   - Execute novamente: `./gradlew bootRun`
 
 ## Contribuidores 
 
